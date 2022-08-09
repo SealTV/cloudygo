@@ -1,4 +1,4 @@
-package circuitbraker
+package stability
 
 import (
 	"context"
@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-type Circuit func(ctx context.Context) (string, error)
+type Circuit[T any] func(ctx context.Context) (T, error)
 
-func Breaker(circuit Circuit, failureTreshhold uint) Circuit {
+func Breaker[T any](circuit Circuit[T], failureTreshhold uint) Circuit[T] {
 	var consecutiveFailures int = 0
 	var lastAttemt time.Time = time.Now()
 	var m sync.RWMutex
 
-	return func(ctx context.Context) (string, error) {
+	return func(ctx context.Context) (T, error) {
 		m.RLock()
 
 		d := consecutiveFailures - int(failureTreshhold)
@@ -22,7 +22,7 @@ func Breaker(circuit Circuit, failureTreshhold uint) Circuit {
 			shouldRetryAt := lastAttemt.Add(time.Second * 2 << d)
 			if !time.Now().After(shouldRetryAt) {
 				m.RUnlock()
-				return "", errors.New("service unreacheable")
+				return defaultVal[T](), errors.New("service unreachable")
 			}
 		}
 

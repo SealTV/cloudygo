@@ -1,4 +1,4 @@
-package debounce
+package stability
 
 import (
 	"context"
@@ -6,15 +6,13 @@ import (
 	"time"
 )
 
-type Circuit func(ctx context.Context) (string, error)
-
-func DebounceFirst(circuit Circuit, d time.Duration) Circuit {
+func DebounceFirst[T any](circuit Circuit[T], d time.Duration) Circuit[T] {
 	var threshold time.Time
-	var result string
+	var result T
 	var err error
 	var m sync.Mutex
 
-	return func(ctx context.Context) (string, error) {
+	return func(ctx context.Context) (T, error) {
 		m.Lock()
 
 		defer func() {
@@ -30,15 +28,17 @@ func DebounceFirst(circuit Circuit, d time.Duration) Circuit {
 	}
 }
 
-func DebounceLast(circuit Circuit, d time.Duration) Circuit {
-	var threshold time.Time
-	var ticker *time.Ticker
-	var result string
-	var err error
-	var once sync.Once
-	var m sync.Mutex
+func DebounceLast[T any](circuit Circuit[T], d time.Duration) Circuit[T] {
+	var (
+		threshold time.Time
+		ticker    *time.Ticker
+		result    T
+		err       error
+		once      sync.Once
+		m         sync.Mutex
+	)
 
-	return func(ctx context.Context) (string, error) {
+	return func(ctx context.Context) (T, error) {
 		m.Lock()
 		defer m.Unlock()
 
@@ -50,10 +50,10 @@ func DebounceLast(circuit Circuit, d time.Duration) Circuit {
 			go func() {
 				defer func() {
 					m.Lock()
-					ticker.Stop()
+					defer m.Unlock()
 
+					ticker.Stop()
 					once = sync.Once{}
-					m.Unlock()
 				}()
 
 				for {
@@ -67,7 +67,7 @@ func DebounceLast(circuit Circuit, d time.Duration) Circuit {
 						}
 					case <-ctx.Done():
 						m.Lock()
-						result, err = "", ctx.Err()
+						result, err = defaultVal[T](), ctx.Err()
 						m.Unlock()
 						return
 					}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SealTV/cloudygo/retry"
+	"github.com/SealTV/cloudygo/stability"
 )
 
 var count int
@@ -22,7 +22,7 @@ func EmulateTransientError(ctx context.Context) (string, error) {
 }
 
 func main() {
-	r := retry.Retry(EmulateTransientError, 5, 2*time.Second)
+	r := stability.Retry(EmulateTransientError, 5, 2*time.Second)
 	resp, err := r(context.Background())
 
 	fmt.Println(resp, err)

@@ -1,4 +1,4 @@
-package retry
+package stability
 
 import (
 	"context"
@@ -6,10 +6,8 @@ import (
 	"time"
 )
 
-type Effector func(ctx context.Context) (string, error)
-
-func Retry(effector Effector, retries int, delay time.Duration) Effector {
-	return func(ctx context.Context) (string, error) {
+func Retry[T any](effector Effector[T], retries int, delay time.Duration) Effector[T] {
+	return func(ctx context.Context) (T, error) {
 		for r := 0; ; r++ {
 			response, err := effector(ctx)
 			if err == nil || r >= retries {
@@ -21,7 +19,7 @@ func Retry(effector Effector, retries int, delay time.Duration) Effector {
 			select {
 			case <-time.After(delay):
 			case <-ctx.Done():
-				return "", ctx.Err()
+				return defaultVal[T](), ctx.Err()
 			}
 		}
 	}
