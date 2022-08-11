@@ -5,6 +5,8 @@ import (
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/SealTV/cloudygo/helper"
 )
 
 type Effector[T any] func(ctx context.Context) (T, error)
@@ -17,7 +19,7 @@ func Throttle[T any](e Effector[T], max, refill uint, d time.Duration) Effector[
 
 	return func(ctx context.Context) (T, error) {
 		if err := ctx.Err(); err != nil {
-			return defaultVal[T](), err
+			return helper.DefaultVal[T](), err
 		}
 
 		once.Do(func() {
@@ -42,7 +44,7 @@ func Throttle[T any](e Effector[T], max, refill uint, d time.Duration) Effector[
 		})
 
 		if tokens <= 0 {
-			return defaultVal[T](), errors.New("too many calls")
+			return helper.DefaultVal[T](), errors.New("too many calls")
 		}
 		tokens--
 		return e(ctx)

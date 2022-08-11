@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/SealTV/cloudygo/helper"
 )
 
 func DebounceFirst[T any](circuit Circuit[T], d time.Duration) Circuit[T] {
@@ -67,7 +69,7 @@ func DebounceLast[T any](circuit Circuit[T], d time.Duration) Circuit[T] {
 						}
 					case <-ctx.Done():
 						m.Lock()
-						result, err = defaultVal[T](), ctx.Err()
+						result, err = helper.DefaultVal[T](), ctx.Err()
 						m.Unlock()
 						return
 					}

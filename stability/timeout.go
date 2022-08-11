@@ -1,6 +1,10 @@
 package stability
 
-import "context"
+import (
+	"context"
+
+	"github.com/SealTV/cloudygo/helper"
+)
 
 type SlowFunction[T any] func(T) (T, error)
 
@@ -21,7 +25,7 @@ func Timeout[T any](f SlowFunction[T]) WithConext[T] {
 		case res := <-chres:
 			return res, <-cherr
 		case <-ctx.Done():
-			return defaultVal[T](), ctx.Err()
+			return helper.DefaultVal[T](), ctx.Err()
 		}
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/SealTV/cloudygo/helper"
 )
 
 type Circuit[T any] func(ctx context.Context) (T, error)
@@ -22,7 +24,7 @@ func Breaker[T any](circuit Circuit[T], failureTreshhold uint) Circuit[T] {
 			shouldRetryAt := lastAttemt.Add(time.Second * 2 << d)
 			if !time.Now().After(shouldRetryAt) {
 				m.RUnlock()
-				return defaultVal[T](), errors.New("service unreachable")
+				return helper.DefaultVal[T](), errors.New("service unreachable")
 			}
 		}
 

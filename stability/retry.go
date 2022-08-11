@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"time"
+
+	"github.com/SealTV/cloudygo/helper"
 )
 
 func Retry[T any](effector Effector[T], retries int, delay time.Duration) Effector[T] {
@@ -19,7 +21,7 @@ func Retry[T any](effector Effector[T], retries int, delay time.Duration) Effect
 			select {
 			case <-time.After(delay):
 			case <-ctx.Done():
-				return defaultVal[T](), ctx.Err()
+				return helper.DefaultVal[T](), ctx.Err()
 			}
 		}
 	}
