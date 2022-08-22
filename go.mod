@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/google/go-cmp v0.5.8
+	github.com/gorilla/mux v1.8.0
 	github.com/stretchr/testify v1.8.0
 )
 
