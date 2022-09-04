@@ -4,19 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 type Server struct {
-	store *Storage
 }
 
 func NewServer() *Server {
-	return &Server{
-		store: NewStorage(),
-	}
+	return &Server{}
 }
 
 func (s *Server) Run(addr string) error {
@@ -33,7 +31,7 @@ func (s *Server) keyValueGetHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
 
-	value, err := s.store.Get(key)
+	value, err := Get(key)
 	if err != nil {
 		if errors.Is(err, ErrNoSuchKey) {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -57,7 +55,9 @@ func (s *Server) keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.store.Put(key, string(value)); err != nil {
+	logger.WritePut(key, string(value))
+
+	if err := Put(key, string(value)); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -69,8 +69,9 @@ func (s *Server) keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
 
-	err := s.store.Delete(key)
-	if err != nil {
+	logger.WriteDelete(key)
+
+	if err := Delete(key); err != nil {
 		if errors.Is(err, ErrNoSuchKey) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -81,4 +82,10 @@ func (s *Server) keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func main() {
+	InitializeTransactionLog()
+	server := NewServer()
+	log.Fatal(server.Run(":8080"))
 }

@@ -1,29 +1,16 @@
 package main
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"time"
+	"log"
 
-	"github.com/SealTV/cloudygo/stability"
+	"github.com/SealTV/cloudygo/kvstore"
 )
 
-var count int
-
-func EmulateTransientError(ctx context.Context) (string, error) {
-	count++
-
-	if count <= 3 {
-		return "intentional fail", errors.New("error")
+func main() {
+	if err := kvstore.InitializeTransactionLog(); err != nil {
+		log.Fatal(err)
 	}
 
-	return "success", nil
-}
-
-func main() {
-	r := stability.Retry(EmulateTransientError, 5, 2*time.Second)
-	resp, err := r(context.Background())
-
-	fmt.Println(resp, err)
+	server := kvstore.NewServer()
+	log.Fatal(server.Run(":8080"))
 }

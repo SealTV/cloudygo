@@ -7,17 +7,15 @@ import (
 )
 
 func TestStorage_Put(t *testing.T) {
-	s := NewStorage()
-
-	err := s.Put("key", "val")
+	err := Put("key", "val")
 	assert.NoError(t, err)
 
-	v, err := s.Get("key")
+	v, err := Get("key")
 	assert.NoError(t, err)
 	assert.Equal(t, "val", v)
 
-	assert.NoError(t, s.Delete("key"))
-	v, err = s.Get("key")
+	assert.NoError(t, Delete("key"))
+	v, err = Get("key")
 	assert.ErrorIs(t, err, ErrNoSuchKey)
 	assert.Equal(t, "", v)
 }

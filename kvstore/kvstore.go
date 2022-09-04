@@ -7,32 +7,48 @@ import (
 
 var ErrNoSuchKey = errors.New("no such key")
 
+type TransactionLogger interface {
+	WriteDelete(key string)
+	WritePut(key, value string)
+
+	Err() <-chan error
+
+	ReadEvents() (<-chan Event, <-chan error)
+
+	Run()
+}
+
 type Storage struct {
 	sync.RWMutex
 	m map[string]string
 }
 
-func NewStorage() *Storage {
-	return &Storage{
-		RWMutex: sync.RWMutex{},
-		m:       map[string]string{},
-	}
+var store = Storage{
+	m:       map[string]string{},
+	RWMutex: sync.RWMutex{},
 }
 
-func (s *Storage) Put(key, value string) error {
-	s.Lock()
-	defer s.Unlock()
+// func NewStorage() *Storage {
+// 	return &Storage{
+// 		RWMutex: sync.RWMutex{},
+// 		m:       map[string]string{},
+// 	}
+// }
 
-	s.m[key] = value
+func Put(key, value string) error {
+	store.Lock()
+	defer store.Unlock()
+
+	store.m[key] = value
 
 	return nil
 }
 
-func (s *Storage) Get(key string) (string, error) {
-	s.RLock()
-	defer s.RUnlock()
+func Get(key string) (string, error) {
+	store.RLock()
+	defer store.RUnlock()
 
-	v, ok := s.m[key]
+	v, ok := store.m[key]
 	if !ok {
 		return "", ErrNoSuchKey
 	}
@@ -40,11 +56,11 @@ func (s *Storage) Get(key string) (string, error) {
 	return v, nil
 }
 
-func (s *Storage) Delete(key string) error {
-	s.Lock()
-	defer s.Unlock()
+func Delete(key string) error {
+	store.Lock()
+	defer store.Unlock()
 
-	delete(s.m, key)
+	delete(store.m, key)
 
 	return nil
 }
