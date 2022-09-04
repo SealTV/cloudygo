@@ -24,7 +24,7 @@ func (s *Server) Run(addr string) error {
 	r.HandleFunc("/v1/{key}", s.keyValueGetHandler).Methods(http.MethodGet)
 	r.HandleFunc("/v1/{key}", s.keyValueDeleteHandler).Methods(http.MethodDelete)
 
-	return http.ListenAndServe(addr, r)
+	return http.ListenAndServeTLS(addr, "./certs/server.crt", "./certs/server.key", r)
 }
 
 func (s *Server) keyValueGetHandler(w http.ResponseWriter, r *http.Request) {
