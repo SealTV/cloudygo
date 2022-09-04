@@ -7,7 +7,14 @@ var logger TransactionLogger
 func InitializeTransactionLog() error {
 	var err error
 
-	logger, err = NewFileTransactionLogger("transaction.log")
+	// logger, err = NewFileTransactionLogger("transaction.log")
+	// logger, err = NewFileTransactionLogger("transaction.log")
+	logger, err = NewPostgresStransactionLogger(PostgresDBParams{
+		DBName:   "transactions",
+		Host:     "127.0.0.1:5432",
+		User:     "root",
+		Password: "1234",
+	})
 	if err != nil {
 		return fmt.Errorf("failed to create event logger: %w", err)
 	}
